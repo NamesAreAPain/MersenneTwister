@@ -49,9 +49,12 @@ defmodule MersenneTwister do
   
   def nextNormal(stream) do
     [u1,u2] = stream |> Stream.take(2) |> Enum.to_list()
-    {:math.sqrt(-2*:math.log(u1))*:math.cos(2*:math.pi()*u2),Stream.drop(stream,2)}
+    {box_muller(u1,u2),Stream.drop(stream,2)}
   end
-  
+
+  def box_muller(u1,u2) do
+    :math.sqrt(-2*:math.log(u1))*:math.cos(2*:math.pi()*u2)
+  end
   
   defp lowest_n_bits(n,x) do
     x &&& ((1<<<n)-1)

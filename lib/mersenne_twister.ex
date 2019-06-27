@@ -29,18 +29,30 @@ defmodule MersenneTwister do
   end
   
   def init(seed,mt) do
-    stream = Stream.transform(
+    list = Stream.transform(
       1..mt.n,
       seed, 
       fn i, imin1 -> {[imin1] , lowest_n_bits(mt.w,(mt.f * (imin1 ^^^ (imin1 >>> (mt.w - 2))) + i)) } end
     ) 
-    list = Enum.to_list(stream)
+    |> Enum.to_list()
+
     Stream.unfold({mt.n,list}, fn
       {index,arr} when index == length(arr) -> {0,twist(arr,mt)} |> (fn {acci,acca} -> {shout(Enum.fetch!(acca,acci),mt),{acci+1,acca}} end).()
       {index,arr} -> {shout(Enum.fetch!(arr,index),mt),{index+1,arr}}
       end)
   end
-
+  
+  def nextUniform(stream) do
+    [x] = stream |> Stream.take(1) |> Enum.to_list()
+    {x,Stream.drop(stream,1)}
+  end
+  
+  def nextNormal(stream) do
+    [u1,u2] = stream |> Stream.take(2) |> Enum.to_list()
+    {:math.sqrt(-2*:math.log(u1))*:math.cos(2*:math.pi()*u2),Stream.drop(stream,2)}
+  end
+  
+  
   defp lowest_n_bits(n,x) do
     x &&& ((1<<<n)-1)
   end
@@ -74,6 +86,7 @@ defmodule MersenneTwister do
   defp upper_mask mt do
     lowest_n_bits(mt.w,bnot(lower_mask(mt)))
   end
+  
 end
 
 

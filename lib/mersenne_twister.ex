@@ -27,8 +27,16 @@ defmodule MersenneTwister do
   def init(seed) do
     init(seed,%MT{})
   end
-  
-  def init(seed,mt) do
+
+  def init(seed,mt) when is_float(seed) do
+    init(round(seed*(1 <<< mt.w)),mt)
+  end
+
+  def init(seed,mt) when is_bitstring(seed) do
+    raise ArgumentError, message: "Invalid seed type: String"
+  end
+
+  def init(seed,mt) when is_integer(seed) do
     list = Stream.transform(
       1..mt.n,
       seed, 
